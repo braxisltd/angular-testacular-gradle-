@@ -1,0 +1,55 @@
+apply plugin: 'scala'
+
+repositories {
+    mavenLocal()
+//    mavenRepo name: "java m2", url: "http://download.java.net/maven/2"
+    mavenRepo name: "sbt-idea-repo", url: "http://mpeltonen.github.com/maven/"
+    mavenRepo name: "Maven Repository", url: "http://repo1.maven.org/maven2/"
+    mavenRepo name: "Maven Repository 2", url: "http://repo2.maven.org/maven2/"
+    mavenRepo name: "Typesafe Repository", url: "http://repo.typesafe.com/typesafe/releases/"
+}
+
+dependencies {
+    // Libraries needed to run the scala tools
+    scalaTools 'org.scala-lang:scala-compiler:2.9.2'
+    scalaTools 'org.scala-lang:scala-library:2.9.2'
+
+    // Libraries needed for scala api
+    compile([
+            "net.databinder:unfiltered-filter_2.9.2:0.6.2",
+            "net.databinder:unfiltered-jetty_2.9.2:0.6.2",
+            "org.clapper:avsl_2.9.2:0.4",
+            "org.clapper:grizzled-slf4j_2.9.2:0.6.9",
+            'net.liftweb:lift-json_2.9.1:2.4',
+            'net.liftweb:lift-json-ext_2.9.1:2.4'
+    ])
+
+    testCompile([
+            "org.seleniumhq.selenium:selenium-server:2.24.1",
+            "org.seleniumhq.selenium:selenium-support:2.24.1",
+            "org.scalatest:scalatest_2.9.2:1.8",
+            "org.mockito:mockito-core:1.8.5"
+    ])
+
+}
+
+task scalatest(dependsOn: testClasses, description: "Run ScalaTest runner", type: Test) << {
+    ant.taskdef(
+            name: 'scalatest',
+            classname: 'org.scalatest.tools.ScalaTestAntTask',
+            classpath: sourceSets.test.runtimeClasspath.asPath
+    )
+    ant.scalatest(
+            runpath: sourceSets.test.output.classesDir,
+            haltonfailure: 'true',
+            fork: 'false'
+    ) {
+        reporter(type: 'stdout')
+        reporter(type: 'junitxml', directory: testResultsDir)
+    }
+}
+
+task jsUnit(type: Exec, description: "JS unit tests") {
+    workingDir './config'
+    commandLine 'cmd', 'testacular', 'start', 'testacular-e2e.conf.js'
+}
